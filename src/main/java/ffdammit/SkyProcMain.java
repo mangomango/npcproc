@@ -29,10 +29,10 @@ public class SkyProcMain implements SUM {
      * - runChangesToPatch(), where you put all the processing code and add records to the output patch.
      */
 
-    public static String myPatchName = "No Butch Walk";
+    public static String myPatchName = "NPCProc";
     public static String authorName = "Bystander";
-    public static String version = "1.0";
-    public static String welcomeText = "Removes opposite gender animations flag from all NPCs, optionally fixes races";
+    public static String version = "1.2";
+    public static String welcomeText = "Removes opposite gender animations flag from all NPCs, optionally fixes races models, heights";
     public static String descriptionToShowInSUM = welcomeText;
     public static Color headerColor = new Color(66, 181, 184);  // Teal
     public static Color settingsColor = new Color(72, 179, 58);  // Green
@@ -209,24 +209,23 @@ public class SkyProcMain implements SUM {
             }
         }
 
-        if (save.getBool(Settings.PROCESS_RACE_MODELS)) {
-            for (RACE r : merger.getRaces()) {
-                for (FormID kw : r.getKeywordSet().getKeywordRefs()) {
-                    String title = kw.getTitle();
-                    if (title != null && title.equals("013794Skyrim.esm")) {
-                        try {
-                            Model model = r.getPhysicsModel(Gender.FEMALE);
+        for (RACE r : merger.getRaces()) {
+            for (FormID kw : r.getKeywordSet().getKeywordRefs()) {
+                String title = kw.getTitle();
+                if (title != null && title.equals("013794Skyrim.esm")) { // NPC race
+                    try {
+                        if (save.getBool(Settings.PROCESS_RACE_MODELS)) {
+                            Model model = r.getPhysicsModel(Gender.FEMALE); // throws NPE sometimes
                             if (model != null && model.getFileName().equals("Actors\\Character\\DefaultMale.hkx")) {
                                 model.setFileName("Actors\\Character\\DefaultFemale.hkx");
                                 patch.addRecord(r);
                             }
-                        } catch (NullPointerException e) {
-                            e.printStackTrace();
                         }
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
                     }
                 }
             }
         }
     }
-
 }
