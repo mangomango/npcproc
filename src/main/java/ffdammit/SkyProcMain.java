@@ -5,7 +5,10 @@
 
 package ffdammit;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ffdammit.NBWSaveFile.Settings;
+import ffdammit.dto.RaceData;
 import lev.gui.LSaveFile;
 import skyproc.*;
 import skyproc.genenums.Gender;
@@ -15,8 +18,11 @@ import skyproc.gui.SUMGUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Bystander
@@ -38,6 +44,8 @@ public class SkyProcMain implements SUM {
     public static Color settingsColor = new Color(72, 179, 58);  // Green
     public static Font settingsFont = new Font("Serif", Font.BOLD, 15);
     public static SkyProcSave save = new NBWSaveFile();
+    public static String racesDataPath = "races.json";
+    protected static Map<String, RaceData> raceData;
     /*
      * The types of records you want your patcher to import. Change this to
      * customize the import to what you need.
@@ -196,6 +204,13 @@ public class SkyProcMain implements SUM {
     @Override
     public void runChangesToPatch() throws Exception {
 
+        Map<String, RaceData> raceData = null;
+        ObjectMapper mapper = new ObjectMapper();
+        if (save.getBool(Settings.PROCESS_RACE_HEIGHTS)) {
+            raceData = mapper.readValue(new File(racesDataPath), new TypeReference<HashMap<String, RaceData>>() {
+            });
+        }
+
         Mod patch = SPGlobal.getGlobalPatch();
 
         Mod merger = new Mod(getName() + "Merger", false);
@@ -213,16 +228,25 @@ public class SkyProcMain implements SUM {
             for (FormID kw : r.getKeywordSet().getKeywordRefs()) {
                 String title = kw.getTitle();
                 if (title != null && title.equals("013794Skyrim.esm")) { // NPC race
-                    try {
-                        if (save.getBool(Settings.PROCESS_RACE_MODELS)) {
+                    if (save.getBool(Settings.PROCESS_RACE_MODELS)) {
+                        try {
                             Model model = r.getPhysicsModel(Gender.FEMALE); // throws NPE sometimes
                             if (model != null && model.getFileName().equals("Actors\\Character\\DefaultMale.hkx")) {
                                 model.setFileName("Actors\\Character\\DefaultFemale.hkx");
                                 patch.addRecord(r);
                             }
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
                         }
-                    } catch (NullPointerException e) {
-                        e.printStackTrace();
+                    }
+                    if (save.getBool(Settings.PROCESS_RACE_HEIGHTS) && !r.get(RACE.RACEFlags.Child)) {
+                        String name = r.getName();
+                        if (raceData != null && raceData.containsKey(name)) {
+                            RaceData rd = raceData.get(name);
+                            r.setHeight(Gender.MALE, rd.heightMale);
+                            r.setHeight(Gender.FEMALE, rd.heightFemale);
+                            patch.addRecord(r);
+                        }
                     }
                 }
             }

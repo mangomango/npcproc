@@ -21,6 +21,7 @@ public class NBWSaveFile extends SkyProcSave {
         //  The Setting,	    The default value,	    Whether or not it changing means a new patch should be made
         Add(Settings.IMPORT_AT_START, true, false);
         Add(Settings.PROCESS_RACE_MODELS, true, true);
+        Add(Settings.PROCESS_RACE_HEIGHTS, true, true);
     }
 
     @Override
@@ -42,6 +43,8 @@ public class NBWSaveFile extends SkyProcSave {
                 "turned on, and those having male models will be switched to female ones. \n\n" +
                 "A good example of such race record is Orcs");
 
+        helpInfo.put(Settings.PROCESS_RACE_HEIGHTS, "Changes male/female heights according to the provided races.json file");
+
         helpInfo.put(Settings.GENERAL_SETTINGS,
                 "Settings related to this patcher program.");
     }
@@ -51,6 +54,7 @@ public class NBWSaveFile extends SkyProcSave {
     public enum Settings {
         IMPORT_AT_START,
         PROCESS_RACE_MODELS,
+        PROCESS_RACE_HEIGHTS,
         GENERAL_SETTINGS,
     }
 }

@@ -1,0 +1,46 @@
+{
+  "Nord": {
+    "heightMale": 1.07,
+    "heightFemale": 1.01
+  },
+  "Redguard": {
+    "heightMale": 1.07,
+    "heightFemale": 1.01
+  },
+  "Imperial": {
+    "heightMale": 1.05,
+    "heightFemale": 1.0
+  },
+  "Breton": {
+    "heightMale": 1.03,
+    "heightFemale": 0.98
+  },
+  "Dark Elf": {
+    "heightMale": 1.01,
+    "heightFemale": 0.96
+  },
+  "High Elf": {
+    "heightMale": 1.1,
+    "heightFemale": 1.07
+  },
+  "Wood Elf": {
+    "heightMale": 1.0,
+    "heightFemale": 1.0
+  },
+  "Orc": {
+    "heightMale": 1.09,
+    "heightFemale": 1.08
+  },
+  "Argonian": {
+    "heightMale": 1.02,
+    "heightFemale": 0.97
+  },
+  "Khajiit": {
+    "heightMale": 1.02,
+    "heightFemale": 0.97
+  },
+  "Elder": {
+    "heightMale": 1.03,
+    "heightFemale": 0.98
+  }
+}

@@ -17,6 +17,7 @@ public class GeneralSettingsPanel extends SPSettingPanel {
 
     LCheckBox importOnStartup;
     LCheckBox processRaces;
+    LCheckBox processRaceHeights;
 
     public GeneralSettingsPanel(SPMainMenuPanel parent_) {
         super(parent_, "General Settings", SkyProcMain.headerColor);
@@ -41,6 +42,15 @@ public class GeneralSettingsPanel extends SPSettingPanel {
         processRaces.addShadow();
         setPlacement(processRaces);
         AddSetting(processRaces);
+
+        alignRight();
+
+        processRaceHeights = new LCheckBox("Process race heights", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
+        processRaceHeights.tie(NBWSaveFile.Settings.PROCESS_RACE_HEIGHTS, SkyProcMain.save, SUMGUI.helpPanel, true);
+        processRaceHeights.setOffset(2);
+        processRaceHeights.addShadow();
+        setPlacement(processRaceHeights);
+        AddSetting(processRaceHeights);
 
         alignRight();
     }
