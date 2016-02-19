@@ -1,0 +1,1 @@
+@java.exe -Xmx950m -Xms256m -Xss1m  -jar "ffdammit.jar" -NOSTREAM -NOBOSS

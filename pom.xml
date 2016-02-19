@@ -10,6 +10,7 @@
     <properties>
         <jackson-core-version>2.6.0</jackson-core-version>
         <skyproc-version>2.2.1</skyproc-version>
+        <jar-directory>mod/SkyProc Patchers/NoButchWalk</jar-directory>
     </properties>
     <repositories>
         <repository>
@@ -65,7 +66,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <outputDirectory>mod/SkyProc Patchers/NoButchWalk</outputDirectory>
+                    <outputDirectory>${jar-directory}</outputDirectory>
                     <appendAssemblyId>false</appendAssemblyId>
                     <finalName>ffdammit</finalName>
                     <archive>
@@ -74,6 +75,29 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${jar-directory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                            <overwrite>true</overwrite>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

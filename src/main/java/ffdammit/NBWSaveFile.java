@@ -20,8 +20,10 @@ public class NBWSaveFile extends SkyProcSave {
     protected void initSettings() {
         //  The Setting,	    The default value,	    Whether or not it changing means a new patch should be made
         Add(Settings.IMPORT_AT_START, true, false);
+        Add(Settings.PROCESS_OPPOSITE_GENDER_ANIMS, true, true);
         Add(Settings.PROCESS_RACE_MODELS, true, true);
         Add(Settings.PROCESS_RACE_HEIGHTS, true, true);
+        Add(Settings.PROCESS_FACE_VISUALS, false, true);
     }
 
     @Override
@@ -39,11 +41,16 @@ public class NBWSaveFile extends SkyProcSave {
                         + "- Having this on might make the GUI respond sluggishly while it processes in the "
                         + "background.");
 
+        helpInfo.put(Settings.PROCESS_OPPOSITE_GENDER_ANIMS, "Remove Opposite Gender Animations flag from female NPCs");
+
         helpInfo.put(Settings.PROCESS_RACE_MODELS, "If enabled, the processing of female models in races will be " +
                 "turned on, and those having male models will be switched to female ones. \n\n" +
                 "A good example of such race record is Orcs");
 
         helpInfo.put(Settings.PROCESS_RACE_HEIGHTS, "Changes male/female heights according to the provided races.json file");
+
+        helpInfo.put(Settings.PROCESS_FACE_VISUALS, "Carry over face data from ESPs specified in faces.txt. \n\n" +
+                "Ensures that NPCs get correct appearance even if the load order has been messed up");
 
         helpInfo.put(Settings.GENERAL_SETTINGS,
                 "Settings related to this patcher program.");
@@ -53,8 +60,10 @@ public class NBWSaveFile extends SkyProcSave {
     // initSettings().
     public enum Settings {
         IMPORT_AT_START,
+        PROCESS_OPPOSITE_GENDER_ANIMS,
         PROCESS_RACE_MODELS,
         PROCESS_RACE_HEIGHTS,
+        PROCESS_FACE_VISUALS,
         GENERAL_SETTINGS,
     }
 }
