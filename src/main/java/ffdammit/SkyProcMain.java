@@ -45,7 +45,6 @@ public class SkyProcMain implements SUM {
     public static Font settingsFont = new Font("Serif", Font.BOLD, 15);
     public static SkyProcSave save = new NBWSaveFile();
     public static String racesDataPath = "races.json";
-    protected static Map<String, RaceData> raceData;
     /*
      * The types of records you want your patcher to import. Change this to
      * customize the import to what you need.
@@ -204,52 +203,47 @@ public class SkyProcMain implements SUM {
     @Override
     public void runChangesToPatch() throws Exception {
 
-        Map<String, RaceData> raceData = null;
         ObjectMapper mapper = new ObjectMapper();
-        if (save.getBool(Settings.PROCESS_RACE_HEIGHTS)) {
-            raceData = mapper.readValue(new File(racesDataPath), new TypeReference<HashMap<String, RaceData>>() {
-            });
-        }
+        final Map<String, RaceData> raceData = save.getBool(Settings.PROCESS_RACE_HEIGHTS) ? mapper.readValue(new File(racesDataPath), new TypeReference<HashMap<String, RaceData>>() {
+        }) : null;
 
         Mod patch = SPGlobal.getGlobalPatch();
 
         Mod merger = new Mod(getName() + "Merger", false);
         merger.addAsOverrides(SPGlobal.getDB());
 
-        // Write your changes to the patch here.
-        for (NPC_ n : merger.getNPCs()) {
+        merger.getNPCs().forEach(n -> {
             if (n.get(NPC_.NPCFlag.Female) && n.get(NPC_.NPCFlag.OppositeGenderAnims)) {
                 n.set(NPC_.NPCFlag.OppositeGenderAnims, false);
                 patch.addRecord(n);
             }
-        }
+        });
 
-        for (RACE r : merger.getRaces()) {
-            for (FormID kw : r.getKeywordSet().getKeywordRefs()) {
-                String title = kw.getTitle();
-                if (title != null && title.equals("013794Skyrim.esm")) { // NPC race
-                    if (save.getBool(Settings.PROCESS_RACE_MODELS)) {
-                        try {
-                            Model model = r.getPhysicsModel(Gender.FEMALE); // throws NPE sometimes
-                            if (model != null && model.getFileName().equals("Actors\\Character\\DefaultMale.hkx")) {
-                                model.setFileName("Actors\\Character\\DefaultFemale.hkx");
-                                patch.addRecord(r);
-                            }
-                        } catch (NullPointerException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (save.getBool(Settings.PROCESS_RACE_HEIGHTS) && !r.get(RACE.RACEFlags.Child)) {
-                        String name = r.getName();
-                        if (raceData != null && raceData.containsKey(name)) {
-                            RaceData rd = raceData.get(name);
-                            r.setHeight(Gender.MALE, rd.heightMale);
-                            r.setHeight(Gender.FEMALE, rd.heightFemale);
+        merger.getRaces().forEach(r -> r.getKeywordSet().getKeywordRefs().forEach(kw -> {
+            String title = kw.getTitle();
+            if (title != null && title.equals("013794Skyrim.esm")) { // NPC race
+                if (save.getBool(Settings.PROCESS_RACE_MODELS)) {
+                    try {
+                        Model model = r.getPhysicsModel(Gender.FEMALE); // throws NPE sometimes
+                        if (model != null && model.getFileName().equals("Actors\\Character\\DefaultMale.hkx")) {
+                            model.setFileName("Actors\\Character\\DefaultFemale.hkx");
                             patch.addRecord(r);
                         }
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (save.getBool(Settings.PROCESS_RACE_HEIGHTS) && !r.get(RACE.RACEFlags.Child)) {
+                    String name = r.getName();
+                    if (raceData != null && raceData.containsKey(name)) {
+                        RaceData rd = raceData.get(name);
+                        r.setHeight(Gender.MALE, rd.heightMale);
+                        r.setHeight(Gender.FEMALE, rd.heightFemale);
+                        patch.addRecord(r);
                     }
                 }
             }
-        }
+
+        }));
     }
 }
