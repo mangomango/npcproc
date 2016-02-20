@@ -24,6 +24,7 @@ public class NBWSaveFile extends SkyProcSave {
         Add(Settings.PROCESS_RACE_MODELS, true, true);
         Add(Settings.PROCESS_RACE_HEIGHTS, true, true);
         Add(Settings.PROCESS_FACE_VISUALS, false, true);
+        Add(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS, false, true);
     }
 
     @Override
@@ -52,6 +53,9 @@ public class NBWSaveFile extends SkyProcSave {
         helpInfo.put(Settings.PROCESS_FACE_VISUALS, "Carry over face data from ESPs specified in faces.txt. \n\n" +
                 "Ensures that NPCs get correct appearance even if the load order has been messed up");
 
+        helpInfo.put(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS, "Check if essential/protected flags have been set for NPC in one of mods and preserve them.\n\n" +
+                "Also sets those flag is NPC full name appears in essential.txt or protected.txt");
+
         helpInfo.put(Settings.GENERAL_SETTINGS,
                 "Settings related to this patcher program.");
     }
@@ -64,6 +68,7 @@ public class NBWSaveFile extends SkyProcSave {
         PROCESS_RACE_MODELS,
         PROCESS_RACE_HEIGHTS,
         PROCESS_FACE_VISUALS,
+        PRESERVE_ESSENTIAL_PROTECTED_FLAGS,
         GENERAL_SETTINGS,
     }
 }

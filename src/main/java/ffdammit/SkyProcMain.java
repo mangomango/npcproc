@@ -244,6 +244,10 @@ public class SkyProcMain implements SUM {
 
         final List<Mod> faceMods = save.getBool(Settings.PROCESS_FACE_VISUALS) ? getModsListFromNames(loadTextArray("faces.txt")) : null;
 
+        final List<String> essentialList = save.getBool(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS) ? loadTextArray("essential.txt") : null;
+
+        final List<String> protectedList = save.getBool(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS) ? loadTextArray("protected.txt") : null;
+
         Mod patch = SPGlobal.getGlobalPatch();
 
         Mod merger = new Mod(getName() + "Merger", false);
@@ -283,6 +287,37 @@ public class SkyProcMain implements SUM {
                         n.setWeight(src.getWeight());
                         patch.addRecord(n);
                         break;
+                    }
+                }
+            }
+            if (save.getBool(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS)) {
+                if (essentialList != null && essentialList.contains(n.getName())) {
+                    n.set(NPC_.NPCFlag.Essential, true);
+                    n.set(NPC_.NPCFlag.Protected, false);
+                    patch.addRecord(n);
+                } else if (protectedList != null && protectedList.contains(n.getName())) {
+                    n.set(NPC_.NPCFlag.Protected, true);
+                    patch.addRecord(n);
+                } else {
+                    // try checking record's history
+                    ArrayList<MajorRecord> hist = n.getRecordHistory();
+                    if (hist.size() > 1) { // processing records with no history doesn't make sense
+                        for (MajorRecord mr : hist) {
+                            if (mr instanceof NPC_) {
+                                NPC_ nh = (NPC_) mr;
+                                if (nh.get(NPC_.NPCFlag.Essential)) {
+                                    n.set(NPC_.NPCFlag.Essential, true);
+                                    n.set(NPC_.NPCFlag.Protected, false);
+                                    patch.addRecord(n);
+                                    break;
+                                }
+                                if (nh.get(NPC_.NPCFlag.Protected)) {
+                                    n.set(NPC_.NPCFlag.Protected, true);
+                                    patch.addRecord(n);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }

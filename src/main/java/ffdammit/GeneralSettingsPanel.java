@@ -20,6 +20,7 @@ public class GeneralSettingsPanel extends SPSettingPanel {
     LCheckBox processRaces;
     LCheckBox processRaceHeights;
     LCheckBox processFaceData;
+    LCheckBox preserveEssential;
 
     public GeneralSettingsPanel(SPMainMenuPanel parent_) {
         super(parent_, "General Settings", SkyProcMain.headerColor);
@@ -71,6 +72,15 @@ public class GeneralSettingsPanel extends SPSettingPanel {
         processFaceData.addShadow();
         setPlacement(processFaceData);
         AddSetting(processFaceData);
+
+        alignRight();
+
+        preserveEssential = new LCheckBox("Preserve protection", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
+        preserveEssential.tie(NBWSaveFile.Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS, SkyProcMain.save, SUMGUI.helpPanel, true);
+        preserveEssential.setOffset(2);
+        preserveEssential.addShadow();
+        setPlacement(preserveEssential);
+        AddSetting(preserveEssential);
 
         alignRight();
     }
