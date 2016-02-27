@@ -6,6 +6,7 @@
 package ffdammit;
 
 import lev.gui.LCheckBox;
+import lev.gui.LComboBox;
 import skyproc.gui.SPMainMenuPanel;
 import skyproc.gui.SPSettingPanel;
 import skyproc.gui.SUMGUI;
@@ -20,7 +21,7 @@ public class GeneralSettingsPanel extends SPSettingPanel {
     LCheckBox processRaces;
     LCheckBox processRaceHeights;
     LCheckBox processFaceData;
-    LCheckBox preserveEssential;
+    LComboBox<String> preserveProtectionOptions;
 
     public GeneralSettingsPanel(SPMainMenuPanel parent_) {
         super(parent_, "General Settings", SkyProcMain.headerColor);
@@ -75,13 +76,18 @@ public class GeneralSettingsPanel extends SPSettingPanel {
 
         alignRight();
 
-        preserveEssential = new LCheckBox("Preserve protection", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
-        preserveEssential.tie(NBWSaveFile.Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS, SkyProcMain.save, SUMGUI.helpPanel, true);
-        preserveEssential.setOffset(2);
-        preserveEssential.addShadow();
-        setPlacement(preserveEssential);
-        AddSetting(preserveEssential);
+        preserveProtectionOptions = new LComboBox<>("Protection options", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
+        preserveProtectionOptions.setSize(260, 60);
+        preserveProtectionOptions.addItem("Disabled");
+        preserveProtectionOptions.addItem("Protected/Essential -> Essential");
+        preserveProtectionOptions.addItem("Protected/Essential -> Protected");
+        preserveProtectionOptions.addItem("Essential -> Protected");
+        preserveProtectionOptions.addItem("Protected -> Essential");
+        preserveProtectionOptions.tie(NBWSaveFile.Settings.PRESERVE_PROTECTION_OPTIONS, SkyProcMain.save, SUMGUI.helpPanel, true);
+        setPlacement(preserveProtectionOptions);
+        AddSetting(preserveProtectionOptions);
 
         alignRight();
+
     }
 }

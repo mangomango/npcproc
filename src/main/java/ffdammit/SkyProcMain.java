@@ -11,7 +11,6 @@ import ffdammit.NBWSaveFile.Settings;
 import ffdammit.dto.RaceData;
 import lev.gui.LSaveFile;
 import skyproc.*;
-import skyproc.exceptions.MissingMaster;
 import skyproc.genenums.Gender;
 import skyproc.gui.SPMainMenuPanel;
 import skyproc.gui.SUM;
@@ -205,30 +204,33 @@ public class SkyProcMain implements SUM {
 
     public List<String> loadTextArray(String fileName) {
         try {
-            return Files.readAllLines(new File(fileName).toPath(), Charset.defaultCharset()).stream().map(String::trim).collect(Collectors.toList());
+            return Files.readAllLines(new File(fileName).toPath(), Charset.defaultCharset()).stream().map(String::trim).distinct().collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public List<Mod> getModsListFromNames(List<String> names) {
-        if (names == null) {
-            return null;
-        }
-        ArrayList<ModListing> modsToImport = new ArrayList<>();
-        for (String nm : names) {
-            if (new File(SPGlobal.pathToData, nm).exists()) {
-                modsToImport.add(new ModListing(nm));
+    public void copyFaceData(final NPC_ src, NPC_ dest) {
+        dest.setRace(src.getRace());
+        dest.setSkin(src.getSkin());
+        dest.setVoiceType(src.getVoiceType());
+        dest.setAttackDataRace(src.getAttackDataRace());
+        dest.setEyePreset(src.getEyePreset());
+        dest.setFaceTint(RGB.Red, dest.getFaceTint(RGB.Red));
+        dest.setFaceTint(RGB.Green, dest.getFaceTint(RGB.Green));
+        dest.setFaceTint(RGB.Blue, dest.getFaceTint(RGB.Blue));
+        for (NPC_.FacePart fp : NPC_.FacePart.values()) {
+            float faceValue = src.getFaceValue(fp);
+            if (faceValue != 0.0f) {
+                dest.setFaceValue(fp, faceValue);
             }
         }
-        try {
-            SPImporter.importMods(modsToImport);
-        } catch (MissingMaster missingMaster) {
-            missingMaster.printStackTrace();
-            return null;
-        }
-        return modsToImport.stream().map(SPDatabase::getMod).collect(Collectors.toList());
+        dest.setHairColor(src.getHairColor());
+        dest.setHeight(src.getHeight());
+        dest.setMouthPreset(src.getMouthPreset());
+        dest.setNosePreset(src.getNosePreset());
+        dest.setWeight(src.getWeight());
     }
 
     // This is where you should write the bulk of your code.
@@ -242,11 +244,11 @@ public class SkyProcMain implements SUM {
                 mapper.readValue(new File(racesDataPath), new TypeReference<HashMap<String, RaceData>>() {
                 }) : null;
 
-        final List<Mod> faceMods = save.getBool(Settings.PROCESS_FACE_VISUALS) ? getModsListFromNames(loadTextArray("faces.txt")) : null;
+        final List<String> faceModList = save.getBool(Settings.PROCESS_FACE_VISUALS) ? loadTextArray("faces.txt") : null;
 
-        final List<String> essentialList = save.getBool(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS) ? loadTextArray("essential.txt") : null;
+        final List<String> essentialList = save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 0 ? loadTextArray("essential.txt") : null;
 
-        final List<String> protectedList = save.getBool(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS) ? loadTextArray("protected.txt") : null;
+        final List<String> protectedList = save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 0 ? loadTextArray("protected.txt") : null;
 
         Mod patch = SPGlobal.getGlobalPatch();
 
@@ -254,72 +256,97 @@ public class SkyProcMain implements SUM {
         merger.addAsOverrides(SPGlobal.getDB());
 
         merger.getNPCs().forEach(n -> {
+            boolean isChanged = false;
             if (save.getBool(Settings.PROCESS_OPPOSITE_GENDER_ANIMS)) {
                 if (n.get(NPC_.NPCFlag.Female) && n.get(NPC_.NPCFlag.OppositeGenderAnims)) {
                     n.set(NPC_.NPCFlag.OppositeGenderAnims, false);
-                    patch.addRecord(n);
+                    isChanged = true;
                 }
             }
-            if (faceMods != null) { // processing face data
-                for (Mod m : faceMods) {
-                    if (m.contains(n.getForm())) {
-                        // copy facegen data to the merged patch
-                        NPC_ src = (NPC_) m.getNPCs().get(n.getForm());
-                        // and stop at the first match
-                        n.setRace(src.getRace());
-                        n.setSkin(src.getSkin());
-                        n.setVoiceType(src.getVoiceType());
-                        n.setAttackDataRace(src.getAttackDataRace());
-                        n.setEyePreset(src.getEyePreset());
-                        n.setFaceTint(RGB.Red, n.getFaceTint(RGB.Red));
-                        n.setFaceTint(RGB.Green, n.getFaceTint(RGB.Green));
-                        n.setFaceTint(RGB.Blue, n.getFaceTint(RGB.Blue));
-                        for (NPC_.FacePart fp : NPC_.FacePart.values()) {
-                            float faceValue = src.getFaceValue(fp);
-                            if (faceValue != 0.0f) {
-                                n.setFaceValue(fp, faceValue);
-                            }
-                        }
-                        n.setHairColor(src.getHairColor());
-                        n.setHeight(src.getHeight());
-                        n.setMouthPreset(src.getMouthPreset());
-                        n.setNosePreset(src.getNosePreset());
-                        n.setWeight(src.getWeight());
-                        patch.addRecord(n);
-                        break;
+
+            ArrayList<MajorRecord> hist = n.getRecordHistory();
+
+            if (hist.size() > 1 && faceModList != null) { // processing face data
+                int idx = 999999;
+                MajorRecord mrr = null;
+                for (MajorRecord mr : hist) {
+                    ModListing ml = mr.getModImportedFrom();
+                    Mod mod = SPDatabase.getMod(ml);
+                    String modName = mod.getName();
+                    int i = faceModList.indexOf(modName);
+                    if (i != -1 && idx > i) {
+                        mrr = mr;
+                        idx = i;
                     }
                 }
+                if (mrr != null && mrr instanceof NPC_) {
+                    NPC_ from = (NPC_) mrr;
+                    copyFaceData(from, n);
+                    isChanged = true;
+                }
             }
-            if (save.getBool(Settings.PRESERVE_ESSENTIAL_PROTECTED_FLAGS)) {
+
+            if (save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 0) {
+                boolean isProtected = false;
+                boolean isEssential = false;
                 if (essentialList != null && essentialList.contains(n.getName())) {
-                    n.set(NPC_.NPCFlag.Essential, true);
-                    n.set(NPC_.NPCFlag.Protected, false);
-                    patch.addRecord(n);
-                } else if (protectedList != null && protectedList.contains(n.getName())) {
-                    n.set(NPC_.NPCFlag.Protected, true);
-                    patch.addRecord(n);
+                    isEssential = true;
+                }
+                if (protectedList != null && protectedList.contains(n.getName())) {
+                    isProtected = true;
                 } else {
                     // try checking record's history
-                    ArrayList<MajorRecord> hist = n.getRecordHistory();
                     if (hist.size() > 1) { // processing records with no history doesn't make sense
                         for (MajorRecord mr : hist) {
                             if (mr instanceof NPC_) {
                                 NPC_ nh = (NPC_) mr;
                                 if (nh.get(NPC_.NPCFlag.Essential)) {
-                                    n.set(NPC_.NPCFlag.Essential, true);
-                                    n.set(NPC_.NPCFlag.Protected, false);
-                                    patch.addRecord(n);
-                                    break;
+                                    isEssential = true;
                                 }
                                 if (nh.get(NPC_.NPCFlag.Protected)) {
-                                    n.set(NPC_.NPCFlag.Protected, true);
-                                    patch.addRecord(n);
-                                    break;
+                                    isProtected = true;
                                 }
                             }
                         }
                     }
                 }
+                switch (save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS)) {
+                    case 1: // Protected/Essential -> Essential
+                        isEssential = isEssential | isProtected;
+                        if (isEssential) {
+                            isChanged = true;
+                            n.set(NPC_.NPCFlag.Protected, false);
+                            n.set(NPC_.NPCFlag.Essential, true);
+                        }
+                        break;
+                    case 2: // Protected/Essential -> Protected
+                        isProtected = isProtected | isEssential;
+                        if (isProtected) {
+                            isChanged = true;
+                            n.set(NPC_.NPCFlag.Protected, true);
+                            n.set(NPC_.NPCFlag.Essential, false);
+                        }
+                        break;
+                    case 3: // Essential -> Protected
+                        isProtected = isProtected | isEssential | n.get(NPC_.NPCFlag.Essential) | n.get(NPC_.NPCFlag.Protected);
+                        if (isProtected) {
+                            isChanged = true;
+                            n.set(NPC_.NPCFlag.Protected, true);
+                            n.set(NPC_.NPCFlag.Essential, false);
+                        }
+                        break;
+                    case 4: // Protected -> Essential
+                        isEssential = isProtected | isEssential | n.get(NPC_.NPCFlag.Essential) | n.get(NPC_.NPCFlag.Protected);
+                        if (isEssential) {
+                            isChanged = true;
+                            n.set(NPC_.NPCFlag.Protected, false);
+                            n.set(NPC_.NPCFlag.Essential, true);
+                        }
+                        break;
+                }
+            }
+            if (isChanged) {
+                patch.addRecord(n);
             }
         });
 
