@@ -90,7 +90,7 @@
                             <outputDirectory>${jar-directory}</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>src/main/resources</directory>
+                                    <directory>src/test/resources</directory>
                                     <filtering>false</filtering>
                                 </resource>
                             </resources>

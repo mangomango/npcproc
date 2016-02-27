@@ -250,102 +250,118 @@ public class SkyProcMain implements SUM {
 
         final List<String> protectedList = save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 0 ? loadTextArray("protected.txt") : null;
 
+        final List<String> noProtectionList = save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 0 ? loadTextArray("noprotection.txt") : null;
+
         Mod patch = SPGlobal.getGlobalPatch();
 
         Mod merger = new Mod(getName() + "Merger", false);
         merger.addAsOverrides(SPGlobal.getDB());
 
         merger.getNPCs().forEach(n -> {
-            boolean isChanged = false;
-            if (save.getBool(Settings.PROCESS_OPPOSITE_GENDER_ANIMS)) {
-                if (n.get(NPC_.NPCFlag.Female) && n.get(NPC_.NPCFlag.OppositeGenderAnims)) {
-                    n.set(NPC_.NPCFlag.OppositeGenderAnims, false);
-                    isChanged = true;
-                }
-            }
 
-            ArrayList<MajorRecord> hist = n.getRecordHistory();
+            boolean isNPCRecordChanged = false;
 
-            if (hist.size() > 1 && faceModList != null) { // processing face data
-                int idx = 999999;
-                MajorRecord mrr = null;
-                for (MajorRecord mr : hist) {
-                    ModListing ml = mr.getModImportedFrom();
-                    Mod mod = SPDatabase.getMod(ml);
-                    String modName = mod.getName();
-                    int i = faceModList.indexOf(modName);
-                    if (i != -1 && idx > i) {
-                        mrr = mr;
-                        idx = i;
+            if (faceModList != null) {
+                ArrayList<MajorRecord> hist = n.getRecordHistory();
+
+                if (hist.size() > 1) { // processing face data
+                    int idx = 999999;
+                    MajorRecord mrr = null;
+                    for (MajorRecord mr : hist) {
+                        ModListing ml = mr.getModImportedFrom();
+                        Mod mod = SPDatabase.getMod(ml);
+                        String modName = mod.getName();
+                        int i = faceModList.indexOf(modName);
+                        if (i != -1 && idx > i) {
+                            // the mod matching first listed in faces.txt wins
+                            mrr = mr;
+                            idx = i;
+                        }
                     }
-                }
-                if (mrr != null && mrr instanceof NPC_) {
-                    NPC_ from = (NPC_) mrr;
-                    copyFaceData(from, n);
-                    isChanged = true;
+                    if (mrr != null && mrr instanceof NPC_) {
+                        NPC_ from = (NPC_) mrr;
+                        copyFaceData(from, n);
+                        isNPCRecordChanged = true;
+                    }
                 }
             }
 
             if (save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 0) {
                 boolean isProtected = false;
                 boolean isEssential = false;
+                boolean isProtectionProcessed = false;
                 if (essentialList != null && essentialList.contains(n.getName())) {
-                    isEssential = true;
-                }
-                if (protectedList != null && protectedList.contains(n.getName())) {
-                    isProtected = true;
-                } else {
+                    n.set(NPC_.NPCFlag.Essential, true);
+                    n.set(NPC_.NPCFlag.Protected, false);
+                } else if (protectedList != null && protectedList.contains(n.getName())) {
+                    n.set(NPC_.NPCFlag.Essential, false);
+                    n.set(NPC_.NPCFlag.Protected, true);
+                } else if (noProtectionList != null && noProtectionList.contains(n.getName())) {
+                    n.set(NPC_.NPCFlag.Essential, false);
+                    n.set(NPC_.NPCFlag.Protected, false);
+                } else if (save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 1) { // don't process if set to 'files only'
                     // try checking record's history
-                    if (hist.size() > 1) { // processing records with no history doesn't make sense
-                        for (MajorRecord mr : hist) {
-                            if (mr instanceof NPC_) {
-                                NPC_ nh = (NPC_) mr;
-                                if (nh.get(NPC_.NPCFlag.Essential)) {
-                                    isEssential = true;
-                                }
-                                if (nh.get(NPC_.NPCFlag.Protected)) {
-                                    isProtected = true;
-                                }
+                    ArrayList<MajorRecord> hist = n.getRecordHistory();
+                    for (MajorRecord mr : hist) {
+                        if (mr instanceof NPC_) {
+                            NPC_ nh = (NPC_) mr;
+                            if (nh.get(NPC_.NPCFlag.Essential)) {
+                                isEssential = true;
+                                isProtectionProcessed = true;
+                            }
+                            if (nh.get(NPC_.NPCFlag.Protected)) {
+                                isProtected = true;
+                                isProtectionProcessed = true;
                             }
                         }
                     }
-                }
-                switch (save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS)) {
-                    case 1: // Protected/Essential -> Essential
-                        isEssential = isEssential | isProtected;
-                        if (isEssential) {
-                            isChanged = true;
-                            n.set(NPC_.NPCFlag.Protected, false);
-                            n.set(NPC_.NPCFlag.Essential, true);
+                    if (isProtectionProcessed) {
+                        switch (save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS)) {
+                            case 2: // Protected/Essential -> Essential
+                                isEssential = isEssential | isProtected;
+                                if (isEssential) {
+                                    isNPCRecordChanged = true;
+                                    n.set(NPC_.NPCFlag.Protected, false);
+                                    n.set(NPC_.NPCFlag.Essential, true);
+                                }
+                                break;
+                            case 3: // Protected/Essential -> Protected
+                                isProtected = isProtected | isEssential;
+                                if (isProtected) {
+                                    isNPCRecordChanged = true;
+                                    n.set(NPC_.NPCFlag.Protected, true);
+                                    n.set(NPC_.NPCFlag.Essential, false);
+                                }
+                                break;
+                            case 4: // Essential -> Protected
+                                isProtected = isProtected | isEssential | n.get(NPC_.NPCFlag.Essential) | n.get(NPC_.NPCFlag.Protected);
+                                if (isProtected) {
+                                    isNPCRecordChanged = true;
+                                    n.set(NPC_.NPCFlag.Protected, true);
+                                    n.set(NPC_.NPCFlag.Essential, false);
+                                }
+                                break;
+                            case 5: // Protected -> Essential
+                                isEssential = isProtected | isEssential | n.get(NPC_.NPCFlag.Essential) | n.get(NPC_.NPCFlag.Protected);
+                                if (isEssential) {
+                                    isNPCRecordChanged = true;
+                                    n.set(NPC_.NPCFlag.Protected, false);
+                                    n.set(NPC_.NPCFlag.Essential, true);
+                                }
+                                break;
                         }
-                        break;
-                    case 2: // Protected/Essential -> Protected
-                        isProtected = isProtected | isEssential;
-                        if (isProtected) {
-                            isChanged = true;
-                            n.set(NPC_.NPCFlag.Protected, true);
-                            n.set(NPC_.NPCFlag.Essential, false);
-                        }
-                        break;
-                    case 3: // Essential -> Protected
-                        isProtected = isProtected | isEssential | n.get(NPC_.NPCFlag.Essential) | n.get(NPC_.NPCFlag.Protected);
-                        if (isProtected) {
-                            isChanged = true;
-                            n.set(NPC_.NPCFlag.Protected, true);
-                            n.set(NPC_.NPCFlag.Essential, false);
-                        }
-                        break;
-                    case 4: // Protected -> Essential
-                        isEssential = isProtected | isEssential | n.get(NPC_.NPCFlag.Essential) | n.get(NPC_.NPCFlag.Protected);
-                        if (isEssential) {
-                            isChanged = true;
-                            n.set(NPC_.NPCFlag.Protected, false);
-                            n.set(NPC_.NPCFlag.Essential, true);
-                        }
-                        break;
+                    }
                 }
             }
-            if (isChanged) {
+
+            if (save.getBool(Settings.PROCESS_OPPOSITE_GENDER_ANIMS)) {
+                if (n.get(NPC_.NPCFlag.Female) && n.get(NPC_.NPCFlag.OppositeGenderAnims)) {
+                    n.set(NPC_.NPCFlag.OppositeGenderAnims, false);
+                    isNPCRecordChanged = true;
+                }
+            }
+
+            if (isNPCRecordChanged) {
                 patch.addRecord(n);
             }
         });

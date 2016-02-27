@@ -79,6 +79,7 @@ public class GeneralSettingsPanel extends SPSettingPanel {
         preserveProtectionOptions = new LComboBox<>("Protection options", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
         preserveProtectionOptions.setSize(260, 60);
         preserveProtectionOptions.addItem("Disabled");
+        preserveProtectionOptions.addItem("Files only");
         preserveProtectionOptions.addItem("Protected/Essential -> Essential");
         preserveProtectionOptions.addItem("Protected/Essential -> Protected");
         preserveProtectionOptions.addItem("Essential -> Protected");
