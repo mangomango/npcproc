@@ -25,6 +25,7 @@ public class NBWSaveFile extends SkyProcSave {
         Add(Settings.PROCESS_RACE_HEIGHTS, true, true);
         Add(Settings.PROCESS_FACE_VISUALS, false, true);
         Add(Settings.PRESERVE_PROTECTION_OPTIONS, 0, true);
+        Add(Settings.COMBAT_IN_WATER, false, true);
     }
 
     @Override
@@ -56,8 +57,14 @@ public class NBWSaveFile extends SkyProcSave {
         helpInfo.put(Settings.PRESERVE_PROTECTION_OPTIONS, "Set rules for conflict resolution, when NPC has both Essential and Protected flags in the load order\n\n" +
                 "Alternatively you can convert all essential NPCs to protected and vice versa");
 
+        helpInfo.put(Settings.COMBAT_IN_WATER, "NPCs and creatures cross the water to chase enemies");
+
         helpInfo.put(Settings.GENERAL_SETTINGS,
                 "Settings related to this patcher program.");
+
+        helpInfo.put(Settings.COMBAT_SETTINGS, "Settings related to combat tweaks for races and NPCs");
+
+        helpInfo.put(Settings.VISUAL_SETTINGS, "Visual/appearance tweaks for races and NPCs");
     }
 
     // Note that some settings just have help info, and no actual values in
@@ -69,6 +76,9 @@ public class NBWSaveFile extends SkyProcSave {
         PROCESS_RACE_HEIGHTS,
         PROCESS_FACE_VISUALS,
         PRESERVE_PROTECTION_OPTIONS,
+        COMBAT_IN_WATER,
         GENERAL_SETTINGS,
+        COMBAT_SETTINGS,
+        VISUAL_SETTINGS
     }
 }

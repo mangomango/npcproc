@@ -42,7 +42,7 @@ public class SkyProcMain implements SUM {
 
     public static String myPatchName = "NPCProc";
     public static String authorName = "Bystander";
-    public static String version = "1.3";
+    public static String version = "1.5";
     public static String welcomeText = "Removes opposite gender animations flag from all NPCs, optionally fixes races models, heights";
     public static String descriptionToShowInSUM = welcomeText;
     public static Color headerColor = new Color(66, 181, 184);  // Teal
@@ -115,6 +115,8 @@ public class SkyProcMain implements SUM {
 
         settingsMenu.setWelcomePanel(new WelcomePanel(settingsMenu));
         settingsMenu.addMenu(new GeneralSettingsPanel(settingsMenu), false, save, Settings.GENERAL_SETTINGS);
+        settingsMenu.addMenu(new VisualSettingsPanel(settingsMenu), false, save, Settings.VISUAL_SETTINGS);
+        settingsMenu.addMenu(new CombatSettingsPanel(settingsMenu), false, save, Settings.COMBAT_SETTINGS);
 
         return settingsMenu;
     }
@@ -367,14 +369,19 @@ public class SkyProcMain implements SUM {
         });
 
         merger.getRaces().forEach(r -> r.getKeywordSet().getKeywordRefs().forEach(kw -> {
+            boolean isRaceRecordChanged = false;
             String title = kw.getTitle();
+            if (save.getBool(Settings.COMBAT_IN_WATER) && r.get(RACE.RACEFlags.NoCombatInWater)) {
+                r.set(RACE.RACEFlags.NoCombatInWater, false);
+                isRaceRecordChanged = true;
+            }
             if (title != null && title.equals("013794Skyrim.esm")) { // NPC race
                 if (save.getBool(Settings.PROCESS_RACE_MODELS)) {
                     try {
                         Model model = r.getPhysicsModel(Gender.FEMALE); // throws NPE sometimes
                         if (model != null && model.getFileName().equals("Actors\\Character\\DefaultMale.hkx")) {
                             model.setFileName("Actors\\Character\\DefaultFemale.hkx");
-                            patch.addRecord(r);
+                            isRaceRecordChanged = true;
                         }
                     } catch (NullPointerException e) {
                         e.printStackTrace();
@@ -386,11 +393,13 @@ public class SkyProcMain implements SUM {
                         RaceData rd = raceData.get(name);
                         r.setHeight(Gender.MALE, rd.heightMale);
                         r.setHeight(Gender.FEMALE, rd.heightFemale);
-                        patch.addRecord(r);
+                        isRaceRecordChanged = true;
                     }
                 }
             }
-
+            if (isRaceRecordChanged) {
+                patch.addRecord(r);
+            }
         }));
     }
 }
