@@ -7,9 +7,7 @@ import skyproc.gui.SUMGUI;
 
 public class CombatSettingsPanel extends SPSettingPanel {
 
-    LCheckBox processCombatInWater;
-
-    public CombatSettingsPanel(SPMainMenuPanel parent_) {
+    CombatSettingsPanel(SPMainMenuPanel parent_) {
         super(parent_, "Combat Settings", SkyProcMain.headerColor);
     }
 
@@ -17,7 +15,7 @@ public class CombatSettingsPanel extends SPSettingPanel {
     protected void initialize() {
         super.initialize();
 
-        processCombatInWater = new LCheckBox("Enemies cross the water", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
+        LCheckBox processCombatInWater = new LCheckBox("Enemies cross the water", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
         processCombatInWater.tie(NBWSaveFile.Settings.COMBAT_IN_WATER, SkyProcMain.save, SUMGUI.helpPanel, true);
         processCombatInWater.setOffset(2);
         processCombatInWater.addShadow();
@@ -25,5 +23,12 @@ public class CombatSettingsPanel extends SPSettingPanel {
         AddSetting(processCombatInWater);
         alignRight();
 
+        LCheckBox processRemoveDisarm = new LCheckBox("Remove disarm shout from NPCs", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
+        processRemoveDisarm.tie(NBWSaveFile.Settings.REMOVE_DISARM, SkyProcMain.save, SUMGUI.helpPanel, true);
+        processRemoveDisarm.setOffset(2);
+        processRemoveDisarm.addShadow();
+        setPlacement(processRemoveDisarm);
+        AddSetting(processRemoveDisarm);
+        alignRight();
     }
 }

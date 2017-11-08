@@ -26,6 +26,7 @@ public class NBWSaveFile extends SkyProcSave {
         Add(Settings.PROCESS_FACE_VISUALS, false, true);
         Add(Settings.PRESERVE_PROTECTION_OPTIONS, 0, true);
         Add(Settings.COMBAT_IN_WATER, false, true);
+        Add(Settings.REMOVE_DISARM, false, true);
     }
 
     @Override
@@ -59,6 +60,8 @@ public class NBWSaveFile extends SkyProcSave {
 
         helpInfo.put(Settings.COMBAT_IN_WATER, "NPCs and creatures cross the water to chase enemies");
 
+        helpInfo.put(Settings.REMOVE_DISARM, "Remove Disarm shout from NPCs. Still works for the PC");
+
         helpInfo.put(Settings.GENERAL_SETTINGS,
                 "Settings related to this patcher program.");
 
@@ -77,6 +80,7 @@ public class NBWSaveFile extends SkyProcSave {
         PROCESS_FACE_VISUALS,
         PRESERVE_PROTECTION_OPTIONS,
         COMBAT_IN_WATER,
+        REMOVE_DISARM,
         GENERAL_SETTINGS,
         COMBAT_SETTINGS,
         VISUAL_SETTINGS

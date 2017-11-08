@@ -23,10 +23,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -290,6 +288,20 @@ public class SkyProcMain implements SUM {
                         copyFaceData(from, n);
                         isNPCRecordChanged = true;
                     }
+                }
+            }
+
+            if (save.getBool(Settings.REMOVE_DISARM)) {
+                ArrayList<FormID> spells = n.getSpells();
+                FormID disarm = null;
+                for (FormID spell : spells) {
+                    if (Objects.equals(spell.getTitle(), "070981Skyrim.esm")) {
+                        disarm = spell;
+                    }
+                }
+                if (disarm != null) {
+                    n.removeSpell(disarm);
+                    isNPCRecordChanged = true;
                 }
             }
 
