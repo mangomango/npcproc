@@ -77,7 +77,7 @@ public class SkyProcMain implements SUM {
 
     @Override
     public String getName() {
-        return "NoButchWalk";
+        return "NPCProcPatch";
     }
 
     // This function labels any record types that you "multiply".
@@ -219,14 +219,22 @@ public class SkyProcMain implements SUM {
         dest.setVoiceType(src.getVoiceType());
         dest.setAttackDataRace(src.getAttackDataRace());
         dest.setEyePreset(src.getEyePreset());
-        dest.setFaceTint(RGB.Red, dest.getFaceTint(RGB.Red));
-        dest.setFaceTint(RGB.Green, dest.getFaceTint(RGB.Green));
-        dest.setFaceTint(RGB.Blue, dest.getFaceTint(RGB.Blue));
+        dest.setFaceTint(RGB.Red, src.getFaceTint(RGB.Red));
+        dest.setFaceTint(RGB.Green, src.getFaceTint(RGB.Green));
+        dest.setFaceTint(RGB.Blue, src.getFaceTint(RGB.Blue));
+        ArrayList<NPC_.TintLayer> tinting = src.getTinting();
+        dest.clearTinting();
+        for (NPC_.TintLayer tl : tinting) {
+            dest.addTinting(tl);
+        }
+        ArrayList<FormID> headParts = src.getHeadParts();
+        dest.clearHeadParts();
+        for (FormID hp : headParts) {
+            dest.addHeadPart(hp);
+        }
         for (NPC_.FacePart fp : NPC_.FacePart.values()) {
             float faceValue = src.getFaceValue(fp);
-            if (faceValue != 0.0f) {
-                dest.setFaceValue(fp, faceValue);
-            }
+            dest.setFaceValue(fp, faceValue);
         }
         dest.setHairColor(src.getHairColor());
         dest.setHeight(src.getHeight());
@@ -267,20 +275,17 @@ public class SkyProcMain implements SUM {
                 ArrayList<MajorRecord> hist = n.getRecordHistory();
 
                 if (hist.size() > 1) { // processing face data
-                    int idx = 999999;
-                    MajorRecord mrr = null;
+                    MajorRecord mrr = null; // the last record in LO having mod match in faces.txt
                     for (MajorRecord mr : hist) {
                         ModListing ml = mr.getModImportedFrom();
                         Mod mod = SPDatabase.getMod(ml);
                         String modName = mod.getName();
-                        int i = faceModList.indexOf(modName);
-                        if (i != -1 && idx > i) {
-                            // the mod matching first listed in faces.txt wins
+                        if (faceModList.indexOf(modName) != -1) {
                             mrr = mr;
-                            idx = i;
                         }
                     }
-                    if (mrr != null && mrr instanceof NPC_) {
+                    // do not process if the last record in the history anyway
+                    if (mrr != null && mrr != hist.get(hist.size() - 1) && mrr instanceof NPC_) {
                         NPC_ from = (NPC_) mrr;
                         copyFaceData(from, n);
                         isNPCRecordChanged = true;
