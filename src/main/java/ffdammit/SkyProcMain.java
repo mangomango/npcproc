@@ -388,7 +388,7 @@ public class SkyProcMain implements SUM {
         merger.getRaces().forEach(r -> r.getKeywordSet().getKeywordRefs().forEach(kw -> {
             boolean isRaceRecordChanged = false;
             String title = kw.getTitle();
-            if (save.getBool(Settings.COMBAT_IN_WATER) && r.get(RACE.RACEFlags.NoCombatInWater)) {
+            if (save.getBool(Settings.COMBAT_IN_WATER) && r.get(RACE.RACEFlags.Swims) && r.get(RACE.RACEFlags.NoCombatInWater)) {
                 r.set(RACE.RACEFlags.NoCombatInWater, false);
                 isRaceRecordChanged = true;
             }
