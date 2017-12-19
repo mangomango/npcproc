@@ -27,6 +27,7 @@ public class NBWSaveFile extends SkyProcSave {
         Add(Settings.PRESERVE_PROTECTION_OPTIONS, 0, true);
         Add(Settings.COMBAT_IN_WATER, false, true);
         Add(Settings.REMOVE_DISARM, false, true);
+        Add(Settings.REMOVE_DRAGON_DISARM, false, true);
     }
 
     @Override
@@ -62,6 +63,8 @@ public class NBWSaveFile extends SkyProcSave {
 
         helpInfo.put(Settings.REMOVE_DISARM, "Remove Disarm shout from NPCs. Still works for the PC");
 
+        helpInfo.put(Settings.REMOVE_DRAGON_DISARM, "Remove Disarm shout dragons.");
+
         helpInfo.put(Settings.GENERAL_SETTINGS,
                 "Settings related to this patcher program.");
 
@@ -81,6 +84,7 @@ public class NBWSaveFile extends SkyProcSave {
         PRESERVE_PROTECTION_OPTIONS,
         COMBAT_IN_WATER,
         REMOVE_DISARM,
+        REMOVE_DRAGON_DISARM,
         GENERAL_SETTINGS,
         COMBAT_SETTINGS,
         VISUAL_SETTINGS

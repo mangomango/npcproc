@@ -30,5 +30,13 @@ public class CombatSettingsPanel extends SPSettingPanel {
         setPlacement(processRemoveDisarm);
         AddSetting(processRemoveDisarm);
         alignRight();
+
+        LCheckBox processRemoveDisarmDragons = new LCheckBox("Remove disarm shout from dragons", SkyProcMain.settingsFont, SkyProcMain.settingsColor);
+        processRemoveDisarmDragons.tie(NBWSaveFile.Settings.REMOVE_DRAGON_DISARM, SkyProcMain.save, SUMGUI.helpPanel, true);
+        processRemoveDisarmDragons.setOffset(2);
+        processRemoveDisarmDragons.addShadow();
+        setPlacement(processRemoveDisarmDragons);
+        AddSetting(processRemoveDisarmDragons);
+        alignRight();
     }
 }

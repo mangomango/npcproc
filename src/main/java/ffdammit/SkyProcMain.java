@@ -305,6 +305,20 @@ public class SkyProcMain implements SUM {
                 }
             }
 
+            if (save.getBool(Settings.REMOVE_DRAGON_DISARM)) {
+                ArrayList<FormID> spells = n.getSpells();
+                FormID disarm = null;
+                for (FormID spell : spells) {
+                    if (Objects.equals(spell.getTitle(), "016C40Skyrim.esm")) {
+                        disarm = spell;
+                    }
+                }
+                if (disarm != null) {
+                    n.removeSpell(disarm);
+                    isNPCRecordChanged = true;
+                }
+            }
+
             if (save.getInt(Settings.PRESERVE_PROTECTION_OPTIONS) > 0) {
                 boolean isProtected = false;
                 boolean isEssential = false;
