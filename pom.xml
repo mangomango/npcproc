@@ -8,7 +8,7 @@
     <version>1.4</version>
     <url>https://github.com/mangomango/npcproc</url>
     <properties>
-        <jackson-core-version>2.6.0</jackson-core-version>
+        <jackson-core-version>2.12.7.1</jackson-core-version>
         <skyproc-version>2.2.1</skyproc-version>
         <jar-directory>mod/SkyProc Patchers/NoButchWalk</jar-directory>
     </properties>
